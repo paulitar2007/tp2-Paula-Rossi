@@ -1,0 +1,2 @@
+# El proyecto usa solo la biblioteca estándar de Python (csv, json, re, argparse, unittest).
+# No hace falta instalar paquetes adicionales. Versión probada: Python 3.10 o superior.

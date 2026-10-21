@@ -1,0 +1,23 @@
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Cachés de Python
+__pycache__/
+*.pyc
+
+# Editores
+.vscode/
+.idea/
+.DS_Store
+
+# Salidas generadas (se recrean ejecutando el programa)
+outputs/
+
+# Archivos completos de la Secretaría de Energía (pesados; ver data/README.md)
+data/completos/
+data/*.zip
+
+# Secretos
+.env
