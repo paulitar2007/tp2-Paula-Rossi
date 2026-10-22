@@ -18,28 +18,28 @@ El dataset tiene dos archivos:
 
 Como el histórico es muy pesado para subirlo al repositorio, armé dos extractos:
 
-- `rosario_vigentes.csv`: las 782 filas del archivo de vigentes que corresponden a Rosario, Santa Fe.
-- `rosario_historicos.csv`: las 21.684 filas del histórico de Rosario desde el 1/1/2024, más 8 filas con fechas imposibles o fuera de rango (años 1157, 0022, 2011 y 2012) que dejé para mostrar que el programa las detecta. En total son 21.692 filas.
+- **rosario_vigentes.csv**: las 782 filas del archivo de vigentes que corresponden a Rosario, Santa Fe.
+- **rosario_historicos.csv**: las 21.684 filas del histórico de Rosario desde el 1/1/2024, más 8 filas con fechas imposibles o fuera de rango (años 1157, 0022, 2011 y 2012) que dejé para mostrar que el programa las detecta. En total son 21.692 filas.
 
-Para armarlos me quedé con las filas cuya localidad es ROSARIO y la provincia SANTA FE, y con estas columnas: `idempresa`, `empresa`, `direccion`, `localidad`, `provincia`, `producto`, `tipohorario`, `precio`, `fecha_vigencia` y `empresabandera`. Saqué las coordenadas y otras columnas que el programa no usa. Los valores no los modifiqué.
+Para armarlos me quedé con las filas cuya localidad es ROSARIO y la provincia SANTA FE, y solo con las columnas que usa el programa (las que se explican más abajo). Saqué las coordenadas y otras columnas que no necesito. Los valores no los modifiqué.
 
-Si se quieren usar los archivos completos, se descargan desde la página del dataset y se pasan con `--precios`. Conviene ponerlos en `data/completos/`, que está en el `.gitignore`.
+Si se quieren usar los archivos completos, se descargan desde la página del dataset y se le indican al programa al ejecutarlo. Conviene guardarlos en una carpeta llamada completos dentro de data, que está configurada para que Git no la suba.
 
 ## Qué representa cada fila
 
 Cada fila es una actualización de precio informada por una estación:
 
-- `idempresa`: número que identifica a la estación.
-- `empresa`, `direccion`, `empresabandera`: nombre, dirección y bandera (YPF, Shell, Axion, etc.).
-- `localidad`, `provincia`: dónde está la estación.
-- `producto`: Nafta súper, Nafta premium, Gas Oil Grado 2, Gas Oil Grado 3 o GNC.
-- `tipohorario`: Diurno o Nocturno. Cada precio se informa para los dos horarios.
-- `precio`: en pesos por litro (o por m³ en el caso del GNC).
-- `fecha_vigencia`: desde cuándo rige ese precio. En el archivo de vigentes viene como `2026-09-24 11:13:00` y en el histórico como `24/09/2026 11:13`.
+- **idempresa**: número que identifica a la estación.
+- **empresa**, **direccion** y **empresabandera**: nombre, dirección y bandera de la estación (YPF, Shell, Axion, etc.).
+- **localidad** y **provincia**: dónde está la estación.
+- **producto**: Nafta súper, Nafta premium, Gas Oil Grado 2, Gas Oil Grado 3 o GNC.
+- **tipohorario**: Diurno o Nocturno. Cada precio se informa para los dos horarios.
+- **precio**: en pesos por litro (o por m³ en el caso del GNC).
+- **fecha_vigencia**: desde cuándo rige ese precio. En el archivo de vigentes viene como 2026-09-24 11:13:00 y en el histórico como 24/09/2026 11:13.
 
 ## Muestra de prueba
 
-`muestra_precios.csv` y `muestra_precios.json` tienen el mismo contenido: 21 registros de estaciones inventadas en una localidad llamada "Pueblo Ejemplo". Se generan con `python scripts/generar_muestra.py`.
+Los archivos muestra_precios.csv y muestra_precios.json tienen el mismo contenido: 21 registros de estaciones inventadas en una localidad llamada "Pueblo Ejemplo". Se generan con el programa generar_muestra.py de la carpeta scripts.
 
 Cada estación tiene un caso armado a propósito: una con tres actualizaciones (una posterior a la fecha de consulta), una con el mismo dato repetido en los dos formatos de fecha, una con precios contradictorios, una con un precio muy viejo y una de otra localidad. También tiene filas con errores: un id que no es número, un combustible que no existe, un horario inválido, un 31 de febrero, una fecha mal escrita, el año 1157, un precio en cero y un precio que no es número.
 

@@ -23,7 +23,7 @@ Para eso el programa:
 - junta los registros repetidos y descarta los contradictorios;
 - para cada estación elige el precio más reciente que no sea posterior a la fecha consultada;
 - deja afuera los precios que tienen más de 30 días sin actualizarse (el límite se puede cambiar);
-- guarda el resultado en `outputs/consulta.csv`, con la fecha de consulta y desde cuándo rige cada precio.
+- guarda el resultado en un archivo CSV dentro de la carpeta outputs, con la fecha de consulta y desde cuándo rige cada precio.
 
 En esta primera versión se consulta un combustible y una localidad por vez. No calcula distancias ni muestra mapas, aunque los datos traen coordenadas.
 
@@ -36,7 +36,7 @@ git clone https://github.com/paulitar2007/tp2-Paula-Rossi.git
 cd tp2-Paula-Rossi
 ```
 
-Los datos de Rosario ya están incluidos en `data/`, así que no hace falta descargar nada para probarlo.
+Los datos de Rosario ya están incluidos en la carpeta data, así que no hace falta descargar nada para probarlo.
 
 ## Cómo se usa
 
@@ -54,13 +54,13 @@ python -m src.main --localidad Rosario --combustible gasoil --max-dias 60
 python -m src.main --precios data/muestra_precios.json --localidad "Pueblo Ejemplo" --combustible super --fecha 2026-10-01
 ```
 
-Las opciones son:
+Lo que se le puede indicar al programa:
 
-- `--localidad` (obligatoria). No importan las mayúsculas ni las tildes.
-- `--combustible` (obligatoria): `super`, `premium`, `gasoil`, `gasoil-premium` o `gnc`.
-- `--fecha`, en formato AAAA-MM-DD. Si no se indica, se usa la fecha de hoy.
-- `--max-dias`, `--horario` (diurno o nocturno), `--provincia` y `--top`.
-- `--precios`, para usar otros archivos.
+- La localidad, que es obligatoria. No importan las mayúsculas ni las tildes.
+- El combustible, también obligatorio: super, premium, gasoil, gasoil-premium o gnc.
+- La fecha de consulta, en formato año-mes-día. Si no se indica, se usa la fecha de hoy.
+- Opcionalmente: cuántos días de antigüedad se aceptan (30 por defecto), el horario (diurno o nocturno), la provincia y cuántas estaciones mostrar.
+- También se pueden usar otros archivos de precios en lugar de los de Rosario.
 
 ## Pruebas
 
@@ -72,27 +72,27 @@ Las pruebas revisan que una estación con dos actualizaciones devuelva la correc
 
 ## Organización del código
 
-```
-src/fuentes.py    clase base FuenteDatos y sus dos versiones, FuenteCSV y FuenteJSON
-src/modelo.py     clase ConsultaPrecio (valida la consulta) y conversión de fechas con regex
-src/pipeline.py   normalizar_precios, resolver_duplicados, seleccionar_vigentes,
-                  buscar_estaciones, verificar_resultado y exportar_consulta
-src/main.py       lee las opciones de la terminal y ejecuta todo
-tests/            pruebas con unittest
-scripts/          script que genera la muestra de prueba
-data/             datos de Rosario, muestra de prueba y explicación de los datos
-```
+El código está dividido en cuatro archivos dentro de la carpeta src:
+
+- **fuentes.py** se encarga de leer los archivos. Tiene una clase base, FuenteDatos, y dos versiones de esa clase: una para leer CSV y otra para leer JSON. Las dos devuelven los datos de la misma forma, así el resto del programa no depende del formato.
+- **modelo.py** tiene la clase ConsultaPrecio, que guarda y revisa lo que pide el usuario (localidad, combustible, fecha, etc.), y la función que convierte las fechas.
+- **pipeline.py** tiene los pasos del procesamiento: normalizar los precios, resolver duplicados, elegir el precio vigente de cada estación, buscar y ordenar, verificar el resultado y guardarlo.
+- **main.py** es el punto de entrada: lee lo que se escribe en la terminal y ejecuta todo.
+
+Además, la carpeta tests tiene las pruebas, la carpeta scripts tiene el programa que genera la muestra de prueba y la carpeta data tiene los datos.
 
 El recorrido es: leer los archivos, revisar que tengan las columnas necesarias, normalizar fechas y precios, resolver duplicados, elegir el precio vigente de cada estación, filtrar, ordenar, verificar y guardar.
 
 ## Expresiones regulares
 
-Los dos archivos oficiales escriben las fechas distinto: `2026-09-24 11:13:00` en el de precios vigentes y `24/09/2026 11:13` en el histórico. Uso dos expresiones regulares para reconocer cada formato:
+Los dos archivos oficiales escriben las fechas de forma distinta. En el de precios vigentes aparecen como 2026-09-24 11:13:00 (año, mes, día y hora) y en el histórico como 24/09/2026 11:13 (día, mes, año y hora).
 
-- `^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$` para año-mes-día, con la hora opcional;
-- `^(\d{2})/(\d{2})/(\d{4}) (\d{2}):(\d{2})$` para día/mes/año con hora.
+Para reconocerlas uso dos expresiones regulares, que están en el archivo modelo.py:
 
-Las expresiones solo revisan que el formato sea correcto. Que la fecha exista en el calendario (por ejemplo, que no sea un 31 de febrero) lo controlo después, al convertirla con `datetime`. También controlo que no sea anterior a 2016, cuando empezó este registro, ni posterior a hoy.
+- La primera reconoce las fechas que empiezan con el año: cuatro números, un guion, dos números para el mes, otro guion y dos números para el día. La hora es opcional.
+- La segunda reconoce las fechas que empiezan con el día: dos números, una barra, dos números para el mes, otra barra, cuatro números para el año y después la hora.
+
+Las expresiones regulares solo revisan que la fecha esté bien escrita. No saben si la fecha existe: por ejemplo, un 31 de febrero tiene el formato correcto pero no existe. Eso lo controlo después, cuando convierto el texto en una fecha de Python. También reviso que la fecha no sea anterior a 2016, cuando empezó este registro, ni posterior a hoy.
 
 ## Decisiones de limpieza
 
@@ -104,7 +104,7 @@ Las expresiones solo revisan que el formato sea correcto. Que la fecha exista en
 - Si para la misma estación, combustible, horario y fecha hay dos precios distintos, no puedo saber cuál es el bueno, así que descarto los dos. En ese caso, se usa el precio anterior de esa estación.
 - Un precio con más de 30 días sin actualizarse no lo muestro como vigente. Lo cuento aparte y el programa avisa cuántas estaciones quedaron afuera.
 
-Todo lo descartado queda en `outputs/rechazos.csv`, con el archivo, el número de registro y el motivo.
+Todo lo descartado queda guardado en un archivo de rechazos dentro de la carpeta outputs, con el archivo de origen, el número de registro y el motivo.
 
 Si dos estaciones tienen el mismo precio, se ordenan por nombre.
 
@@ -143,4 +143,4 @@ Limitaciones:
 
 Uso el dataset "Precios en surtidor – Resolución 314/2016" de la Secretaría de Energía, publicado en http://datos.energia.gob.ar/dataset/precios-en-surtidor con licencia Creative Commons Attribution 4.0. Lo consulté el 21/10/2026.
 
-Cada fila es una actualización de precio: una estación, un combustible, un horario (diurno o nocturno), un precio y la fecha desde la que rige. Los archivos completos son de todo el país y pesan mucho, así que incluí solo las estaciones de Rosario. El detalle está en `data/README.md`.
+Cada fila es una actualización de precio: una estación, un combustible, un horario (diurno o nocturno), un precio y la fecha desde la que rige. Los archivos completos son de todo el país y pesan mucho, así que incluí solo las estaciones de Rosario. El detalle está en el README de la carpeta data.
